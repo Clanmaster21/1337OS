@@ -4,10 +4,11 @@ call cls ;clear the screen
 mov bx, paintS
 call printS ;print the welcome message
 call enter ;new line
-mov [command], word 0x00
-mov [char], word 0x00
-mov [program], word '4' ;set the program
-
+mov [command], byte '0'
+mov [char], byte 0x00
+mov [return], word .loop
+mov [program], byte '4' ;set the program
+mov [kbdbuf + 0x02], byte 0
 
 .loop:
 call smallPause
@@ -37,12 +38,12 @@ call smallPause
     cmp al, 0x00
     jnz     .x
 
-	mov al, [kbdbuf + 0x02]
+    mov al, [kbdbuf + 0x02]
     cmp al, 0x00
     jz     .loop
     mov [command], word '1'
     popa
-	ret
+    ret
 
 jmp .loop
 

@@ -1,11 +1,10 @@
 wallpaper:
-pusha
-mov [command], word 0x00
-mov [char], word 0x00
-mov [program], word '2'
+mov [command], byte '0'
+mov [char], byte 0x00
+mov [return], word wallpaper.loop
+mov [program], byte '2'
 mov [colour], byte 0x10
 .loop:
-call Uinput
 call smallPause
 mov bx, blank
 call printS
@@ -22,6 +21,7 @@ add [colour], cx
 cmp [colour], byte 0xff
 jge .loop
 mov [colour], byte 0x10
+jmp Uinput
 jmp .loop
 
 blank:

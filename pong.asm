@@ -1,8 +1,8 @@
 pong:
 pusha
 call cls
-mov [command], word '1'
-mov [program], word '5' ;set the program
+mov [command], byte '1'
+mov [program], byte '5' ;set the program
 .loop:
 call smallPause
 call smallPause
@@ -237,11 +237,11 @@ call printS
 call enter
 mov bx, pressenter
 call printS
-popa
 .ent2con:
 mov al, [kbdbuf + 0x1C] ;get up jey
 cmp al, 0x00
 je     .ent2con
+popa
 ret
 
 ;playerx is 10, cpux is 70, both are constant

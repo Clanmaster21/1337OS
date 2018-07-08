@@ -1,15 +1,16 @@
 gamestart:
 pusha
-mov [command], word 0x00
-mov [char], word 0x00 ;clear past inputs
-mov [program], word '3' ;set program
+mov [command], byte 0x00
+mov [char], byte 0x00 ;clear past inputs
+mov [program], byte '3' ;set program
+mov [return], word .loop
 call cls ;clear screen
 mov bx, gameS
 call printS ;welcome message
 call enter
 
 .loop:
-call Uinput ;inputs for start/load
+jmp Uinput ;inputs for start/load
 call pause
 jmp .loop
 
@@ -19,7 +20,7 @@ new:
 mov [name], byte 0x00
 mov [Points], word '10'
 mov [Insults], byte 0x00
-mov [char], word 0x00 ;clear input
+mov [char], byte 0x00 ;clear input
 mov [Charisma], word '10'
 mov [Strength], word '10'
 mov [Intelligence], word '10'
@@ -55,7 +56,7 @@ jne .cont ;continue as normal
 pop bx ;else, take bx
 sub bx, 0x01 ;take one from the location
 push bx ;put bx back
-mov [char], word 0x00 ;set the character to empty
+mov [char], byte 0x00 ;set the character to empty
 call backspace ;call screen backspace to edit screen
 jmp .do ;go to top of loop
 .cont:
@@ -66,7 +67,7 @@ mov [bx], ax ;set it to char
 add bx, 0x01 ;add one
 push bx ;store position in name so bx can be reused
 mov [command], ax ;make the char the command
-mov [char], word 0x00 ;clear buffer
+mov [char], byte 0x00 ;clear buffer
 jmp .do
 
 .name_end:
@@ -81,17 +82,17 @@ call SetCursorPos ;make it visible
 .loop:
 call .check
 call Ginput ;game_key now contains special
-cmp [game_key], word 0x48
+cmp [game_key], byte 0x48
 je .up ;if up
-cmp [game_key], word 0x50
+cmp [game_key], byte 0x50
 je .down ;if down
-cmp [game_key], word 0x4D
+cmp [game_key], byte 0x4D
 je .right ;if right
-cmp [game_key], word 0x4B
+cmp [game_key], byte 0x4B
 je .left ;if left
-cmp [game_key], word 0x1C
+cmp [game_key], byte 0x1C
 je firstroll
-mov [game_key], word 0x00 ;clear input
+mov [game_key], byte 0x00 ;clear input
 call pause
 call .PointsRemain
 jmp .loop ;loop
@@ -101,7 +102,7 @@ cmp [cursor],word 0x128 ;if hit upper limit
 jl .loop ;do nothing
 sub [cursor], word 0xA0 ;lower row by 1
 call SetCursorPos ;make it visible
-mov [game_key], word 0x00 ;clear input
+mov [game_key], byte 0x00 ;clear input
 jmp .loop
 
 .down:
@@ -109,7 +110,7 @@ cmp [cursor],word 0x350 ;lower limit
 jg .loop
 add [cursor], word 0xA0 ;lower row by 1
 call SetCursorPos
-mov [game_key], word 0x00
+mov [game_key], byte 0x00
 jmp .loop
 
 .right:
@@ -119,7 +120,7 @@ jne .continue
 cmp [Points+1], byte '0'
 jne .continue
 popa
-mov [game_key], word 0x00 ;clear inputs
+mov [game_key], byte 0x00 ;clear inputs
 jmp .loop
 .continue:
 mov bx, [cursor] ;make bx the cursor position
@@ -136,7 +137,7 @@ je $+0xB ;if not ignore, this shouldn't be necessary but I'm unwilling to touch 
 mov al, 0x00 ;blank al, for the sake of it
 add bx, word 0x02 ;move bx along
 mov [es:bx], byte '0' ;reset it to 0
-mov [game_key], word 0x00 ;clear inputs
+mov [game_key], byte 0x00 ;clear inputs
 popa
 jmp .loop ;continue looping like nothing ever happened
 
@@ -147,7 +148,7 @@ sub [es:bx], word 0x01 ;take one from the character there
 mov ax, [es:bx] ;move the new char to ax
 cmp al, '/' ;if we've gone too low
 je .decrement ;decrease the next digit
-mov [game_key], word 0x00 ;clear the input
+mov [game_key], byte 0x00 ;clear the input
 popa
 jmp .loop ;continue looping
 
@@ -157,7 +158,7 @@ mov al, '0' ;change al to 0
 mov [es:bx], ax ;make the current screen character 0
 sub bx, 0x02 ;go back a screen character
 add [es:bx], word 0x01 ;add one to it
-mov [game_key], word 0x00 ;continue
+mov [game_key], byte 0x00 ;continue
 popa
 jmp .loop
 
@@ -177,7 +178,7 @@ mov al, '0'
 mov [es:bx], ax ;make is 0
 sub [Points+1], byte 0x02
 .low:
-mov [game_key], word 0x00 ;continue
+mov [game_key], byte 0x00 ;continue
 popa
 jmp .loop
 
@@ -317,6 +318,7 @@ jmp Scene1
 mov bx, .successS
 call printS
 call ent2con
+popa
 jmp Scene1
 
 .failS:
@@ -326,7 +328,7 @@ db 'Although your name is ', 0xFE, ' people call you whatever they feel like cal
 db 'Most people respect you enough to use your real name', 0x00
 ent2con:
 pusha
-mov [game_key], word 0x00
+mov [game_key], byte 0x00
 mov bx, pressenterf
 call printS
 mov cx, [cursor]
@@ -422,7 +424,7 @@ db 0x00
 Points:
 db '10', 0
 name:
-db 'Asa', 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 count:
 db 0x00
 
@@ -434,4 +436,4 @@ db 'Press enter to continue', 0
 pressenterf:
 db '                       ', 0
 game_key:
-db 0x00, 0x00F
+db 0x00, 0x00
