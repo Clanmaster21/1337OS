@@ -24,18 +24,17 @@ note:
 dw 0x0
 
 piano:
-pusha
 call cls ;clear the screen
 mov bx, pianoS
 call printS ;print the welcome message
 call enter ;new line
-mov [command], word 0x00
-mov [char], word 0x00
-mov [program], word '1' ;set the program
+mov [command], byte 0x00
+mov [char], byte 0x00
+mov [program], byte '1' ;set the program
+mov [return], word piano.loop
 .loop:
-call Uinput
-cmp [command], word ' '
-je .loop
+cmp [command], byte ' '
+je Uinput
 mov ax, 0x0088 ;move a tone to ax
 sub ax, 0x60 ; I think this is supposed to be bx
 mov bx, [command] ; as bx is now >60 if a character is pressed
@@ -43,8 +42,8 @@ call mult ;multiply them to get a tone
 mov ax, [ans]
 mov [note], ax
 call beep ;play it
+jmp Uinput
 jmp .loop
-ret
 
 tone: ;cycles through a load of tones at startup
 pusha

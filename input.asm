@@ -23,27 +23,29 @@ mov bx, char ;point bx to char
 cmp [char], word 0x00 ;check if there is a character
 
 je .skip ;skip if not
-cmp [char], word 0x08 ;is it backspace?
+cmp [char], byte 0x08 ;is it backspace?
 jne .next ;skip if not
 call backspace ;backspace, in print
-mov [char], word 0x00
+mov [char], byte 0x00
 jmp .skip ;not a printable character, so skip.
 
 .next:
-cmp [char], word 0x0D ;is it enter?
+cmp [char], byte 0x0D ;is it enter?
 jne .print ;if not, print
-call exec ;we need to try excecuting what the user has inputted
+popa
+jmp exec ;we need to try excecuting what the user has inputted
 jmp .print
 
 .print:
 call printS ;print
 mov ax, [char]
 mov [command], ax
-mov [char], word 0x00 ;clear buffer
+mov [char], byte 0x00 ;clear buffer
 
 .skip:
 popa
+push word [return]
 ret
 
 char:
-db '1', 0
+db '0', 0

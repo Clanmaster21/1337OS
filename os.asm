@@ -9,7 +9,7 @@ mov sp, 0xBc00 ;set up stack
 mov bx, String ;move bx to the start of the string
 mov [device], dl
 mov [cursor],word 0x00 ;set screen position to 0
-mov [char], word 0x00
+mov [char], byte 0x00
 mov [program], byte '0'
 mov [command], byte 0x00
 mov [colour], byte 0x09
@@ -19,9 +19,11 @@ call longPause
 call longPause
 os:
 mov [colour], byte 0x09
-call Uinput
+mov [program], byte '0'
+mov [command], byte '0'
+mov [return], word loop
 call cls
-cmp [name], word 0x00
+cmp [name], byte 0x00
 jne welcome_back
 
 mov bx, String
@@ -44,10 +46,8 @@ call mult ;ans becomes answer
 mov ax, [ans] ;ax becomes answer
 mov [note], ax ;note becomes answer, random note
 
-call Uinput
-
 call beep
-call Uinput
+jmp Uinput
 
 jmp loop
 
