@@ -1,51 +1,49 @@
 exec:
 pusha 
-mov ax, [char]
 mov [char], byte 0x00 ;clear buffer
 cmp [command], byte 'h'; the help command
-jne .action
-mov bx, .help
-add bx, [program]
-add bx, [program]
-sub bx, 0x60
-mov bx, [bx]
-call printS
-call enter
-jmp .end
+jne .action 
+mov bx, .help ;point bx to start of help array
+add bx, [program] ;add twice
+add bx, [program] ;as each item is a word
+sub bx, 0x60 ;take 2*'0' since [program] is a character
+mov bx, [bx] ;resolve address
+call printS ;print help message
+call enter ;new line
+jmp .end 
 
 .action:
 
-cmp [command], byte '1'
+cmp [command], byte '1' ;command <1 aren't allowed
 jl .end
 
-mov bx, .programs
-add bx, [program]
-add bx, [program]
-sub bx, 0x60
+mov bx, .programs ;point bx at programs array
+add bx, [program] ;add [program] words to bx
+add bx, [program] 
+sub bx, 0x60 ;take 2*'0'
 
-mov ax, [bx+2]
-mov bx, [bx]
-sub ax, bx
-shr ax, 1
-add ax, '0'
-cmp al, [command]
-jl .end
+mov ax, [bx+2] ;get the value of the next item in the array
+mov bx, [bx] ;resolve address
+sub ax, bx ;this gives the distance between arrrays in bytes
+shr ax, 1 ;bytes to words
+add ax, '0' ;to string
+cmp al, [command] ;compare to [command]
+jl .end ;if command is greater or equal to it is out the range of the array and not a valid command for this program
 
+add bx, [command] ;add [command] words to bx
 add bx, [command]
-add bx, [command]
-sub bx, 0x62
-mov bx, [bx]
-mov [return+2], bx
-popa
-push word [return+2]
-ret
+sub bx, 0x62 ;take 2*'1' since commands begin at 1 (should probably change this)
+mov bx, [bx] ;resolve address
+mov [return+2], bx ;save address for jumping
+popa ;restore registers
+push word [return+2] ;push address for jumping
+ret ;jump
 
-.end:
-popa
+.end: ;restore addresses, jump to [return]
+popa 
 push word [return]
 ret
 
-dw .quit
 .programs:
 dw .os, .piano, .wallpaper, .game, .paint, .pong, .array 
 
@@ -69,26 +67,26 @@ dw .quit
 
 .array:
 
-.off:
+.off: ;turn off command, should probably be put elsewhere
 mov [command], byte 0x00
 mov [program], byte '0'
 mov [char], byte 0x00
 call disko
-MOV AX, 5301H; Function 5301h: APM Connect real-mode interface
-XOR BX, BX; Device ID: 0000h (= system BIOS)
-INT 15H; Call interrupt: 15h
+mov ax, 0x530; Function 5301h: APM Connect real-mode interface
+xor bx, bx; Device ID: 0000h (= system BIOS)
+int 0x15; Call interrupt: 15h
 
-MOV AX, 530EH; Function 530Eh: APM Driver version
-MOV CX, 0102H; Driver version: APM v1.2
-INT 15H; Call interrupt: 15h
+mov ax, 0x530E; Function 530Eh: APM Driver version
+mov cx, 0x0102; Driver version: APM v1.2
+int 0x15; Call interrupt: 15h
 
-MOV AX, 5307H; Function 5307h: APM Set system power state
-MOV BL, 01H; Device ID: 0001h (= All devices)
-MOV CX, 0003H; Power State: 0003h (= Off)
-INT 15H; Call interrupt: 15h 
+mov ax, 0x5307; Function 5307h: APM Set system power state
+mov bl, 0x01; Device ID: 0001h (= All devices)
+mov cx, 0x0003; Power State: 0003h (= Off)
+int 0x15; Call interrupt: 15h 
 jmp .quit
 
-.quit:
+.quit: ;return to os
 popa
 jmp os
 

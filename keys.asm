@@ -1,36 +1,34 @@
 keys:
-    xor     ax, ax
-    mov     es, ax
+xor     ax, ax
+mov     es, ax
+cli                         ; update ISR address w/ ints disabled
+push    word [es:9*4+2]     ; preserve ISR address
+push    word [es:9*4]       ; start custom driver
+mov     word [es:9*4], irq1isr
+mov     [es:9*4+2],cs
+sti
+mov cx, 0xb800
+mov es, cx
+cmp [command], word '5'
+jne .pong
+call paint    ;program that requires custom driver
+jmp .exit
+.pong:
+cmp [command], word '6' ;this is more like the old exec.asm system, since not all programs use these drivers it'd be harder to implement an array without wasting space because programs 1-4 will never be needed
+jne .exit 
+call pong
+jmp .exit
 
-    cli                         ; update ISR address w/ ints disabled
-    push    word [es:9*4+2]     ; preserve ISR address
-    push    word [es:9*4]       ; start custom driver
-    mov     word [es:9*4], irq1isr
-    mov     [es:9*4+2],cs
-    sti
-    mov cx, 0xb800
-    mov es, cx
-	cmp [command], word '5'
-    jne .pong
-    call paint    ;game that requires custom driver
-	jmp .exit
-
-	.pong:
-    cmp [command], word '6'
-    jne .exit
-    call pong
-    jmp .exit
-
-	.exit:
-    xor     ax, ax
-    mov     es, ax
-    cli                         ; update ISR address w/ ints disabled
-    pop     word [es:9*4]       ; restore ISR address
-    pop     word [es:9*4+2]     ; end custom driver
-    sti
-    mov cx, 0xb800
-    mov es, cx
-    jmp exec
+.exit:
+xor     ax, ax
+mov     es, ax
+cli                         ; update ISR address w/ ints disabled
+pop     word [es:9*4]       ; restore ISR address
+pop     word [es:9*4+2]     ; end custom driver
+sti
+mov cx, 0xb800
+mov es, cx
+jmp exec
 
 irq1isr:
     pusha

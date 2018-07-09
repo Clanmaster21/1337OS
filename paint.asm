@@ -14,7 +14,7 @@ mov [kbdbuf + 0x02], byte 0
 call smallPause
 call smallPause
 
-	mov al, [kbdbuf + 0x4B] ;move left
+    mov al, [kbdbuf + 0x4B] ;move left
     cmp al, 0x00
     jnz     .left
 

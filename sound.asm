@@ -24,7 +24,6 @@ note:
 dw 0x0
 
 piano:
-pusha
 call cls ;clear the screen
 mov bx, pianoS
 call printS ;print the welcome message
@@ -45,7 +44,6 @@ mov [note], ax
 call beep ;play it
 jmp Uinput
 jmp .loop
-ret
 
 tone: ;cycles through a load of tones at startup
 pusha
