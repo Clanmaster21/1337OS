@@ -30,10 +30,7 @@ cmp al, 0x01
 je .mouse ;if so, accept the input
 .mousedone:
 call .cursor
-pop bx
 mov [es:bx], al ;write to screen
-inc bx
-push bx
 mov al, [kbdbuf + 0x4B] ;move left
 cmp al, 0x00
 ;jnz     .left
@@ -147,13 +144,21 @@ push bx
 push ax
 call .readscreen
 pop ax
+mov cl, [.brush]
+cmp cl, 0xFF
+jne .remove
 or al, bl
+jmp .written
+.remove:
+not al
+and al, bl
+.written:
 pop bx
 ret
  
 .readscreen:
-mov dx,03ceh 
-mov ax,0005h
+mov dx,0x03ce
+mov ax,0x0005
 out dx,ax
 mov ax,0304h ;ah = plane, al = read modus
 out dx,ax ;go to read mode 
@@ -172,7 +177,7 @@ dw 0
 db 0
 
 .brush:
-db 0xfc, 0
+db 0xFF, 0
 ;.brushxy:
 ;dw 0,0
 
