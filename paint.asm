@@ -22,7 +22,6 @@ mov ax, 0x0C02         ; index of map mask register, plus colour to switch to
 out dx, ax
 
 xor bx, bx
-
 .loop:
 in al, 0x64 ;check for mouse input
 and al, 0x01
@@ -31,29 +30,26 @@ je .mouse ;if so, accept the input
 .mousedone:
 call .cursor
 mov [es:bx], al ;write to screen
-mov al, [kbdbuf + 0x4B] ;move left
-cmp al, 0x00
-;jnz     .left
+;mov al, [kbdbuf + 0x4B] ;move left
 
-mov al, [kbdbuf + 0x4D] ;move right
-cmp al, 0x00
-;jnz     .right
+;mov al, [kbdbuf + 0x4D] ;move right
 
-mov al, [kbdbuf + 0x48] ;move up
-cmp al, 0x00
-;jnz     .up
+;mov al, [kbdbuf + 0x48] ;move up
 
-mov al, [kbdbuf + 0x50] ;move down
-cmp al, 0x00
-;jnz     .down
+;mov al, [kbdbuf + 0x50] ;move down
 
-mov al, [kbdbuf + 0x2C] ;brush down
-cmp al, 0x00
-jnz     .z
+;mov al, [kbdbuf + 0x2C] ;brush down
 
-mov al, [kbdbuf + 0x2D] ;brush up
+mov al, [mpos]
+and al, 1b
 cmp al, 0x00
-jnz     .x
+jnz .z
+;mov al, [kbdbuf + 0x2D] ;brush up
+
+mov al, [mpos]
+and al, 10b
+cmp al, 0x00
+jnz .x
 
 mov al, [kbdbuf + 0x02]
 cmp al, 0x00
@@ -67,7 +63,8 @@ mov bx, 0x00
 int 10h
     popa
     ret
-
+mov bl, 0xF5
+call mouse.send
 jmp .loop
 
 .z:
@@ -78,18 +75,25 @@ jmp .loop
 mov [.brush], byte 0x00
 jmp .loop
 
-
 .mouse:
 pusha
 call mouse.waitr
 call mouse.mpause
 xor bx, bx
+in al, 0x64
+and al, 0x20
+cmp al, 0x00
+je .ydone
+
 in al, 0x60
 mov [mpos], al ;store this directly so mouse button presses are saved
 call mouse.waitr
 call mouse.mpause
+in al, 0x64
+and al, 0x20
+cmp al, 0x00
+je .ydone
 in al, 0x60
-
 mov bl, al
 mov cl, [mpos]
 and cl, 0x10
@@ -100,6 +104,10 @@ add [mpos+1], bx
 
 call mouse.waitr
 call mouse.mpause
+in al, 0x64
+and al, 0x20
+cmp al, 0x00
+je .ydone
 in al, 0x60
 
 mov bl, al
@@ -110,7 +118,14 @@ jne .sub2
 sub [mpos+3], bx
 .ydone:
 
-
+in al, 0x60
+in al, 0x60
+in al, 0x60
+in al, 0x60
+in al, 0x60
+in al, 0x60
+in al, 0x60
+in al, 0x60
 popa
 jmp .mousedone
 
@@ -140,6 +155,7 @@ and cx, 111b
 mov al, 0x80
 shr al, cl
 mov si, bx
+push cx
 push bx
 push ax
 call .readscreen
@@ -154,6 +170,7 @@ not al
 and al, bl
 .written:
 pop bx
+pop cx
 ret
  
 .readscreen:
@@ -168,18 +185,12 @@ out dx,ax
 mov bl,[es:si] ;read red
 ret
 
-mov cl,[es:bx]
-or al, cl
-ret
-
-.last:
-dw 0
-db 0
+;mov cl,[es:bx]
+;or al, cl
+;ret
 
 .brush:
 db 0xFF, 0
-;.brushxy:
-;dw 0,0
 
 paintS:
 db 'Welcome to paint', 0

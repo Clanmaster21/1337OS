@@ -3,6 +3,9 @@ pusha
 xor ax, ax
 mov al,0xa8  
 out 0x64,al ;activate auxilliary
+call .waitr
+call .mpause
+in al, 0x60
 mov bl, 0xff ;set command
 call .send
 cmp ax, 0xFA
@@ -10,8 +13,6 @@ cmp ax, 0xFA
 call .waitr
 call .mpause
 in al,0x60 ;should be 0xAA
-call .waitr
-call .mpause
 in al,0x60 ;should be device ID (assuming 0x00 for now)
 mov bl, 0xF4
 call .send
@@ -40,10 +41,11 @@ loop .loop
 	ret
 
 .mpause: ;pause to allow time
-push ecx
-mov ecx,0xa0000
+push cx
+mov cx,0xa000
 .1: loop .1
-pop ecx
+pop cx
+
 ret
 
 .waitw:

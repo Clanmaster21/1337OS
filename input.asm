@@ -43,7 +43,9 @@ mov [command], ax
 mov [char], byte 0x00 ;clear buffer
 
 .skip:
+in al, 0x60
 popa
+
 push word [return]
 ret
 
