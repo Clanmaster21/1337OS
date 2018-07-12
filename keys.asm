@@ -31,33 +31,32 @@ mov es, cx
 jmp exec
 
 irq1isr:
-    pusha
+pusha
 
-    ; read keyboard scan code
-    in      al, 0x60
+; read keyboard scan code
+in      al, 0x60
 
-    ; update keyboard state
-    xor     bh, bh
-    mov     bl, al
-    and     bl, 0x7F            ; bx = scan code
-    shr     al, 7               ; al = 0 if pressed, 1 if released
-    xor     al, 1               ; al = 1 if pressed, 0 if released
-    mov     [cs:bx+kbdbuf], al
+; update keyboard state
+xor     bh, bh
+mov     bl, al
+and     bl, 0x7F            ; bx = scan code
+shr     al, 7               ; al = 0 if pressed, 1 if released
+xor     al, 1               ; al = 1 if pressed, 0 if released
+mov     [cs:bx+kbdbuf], al
+; send EOI to XT keyboard
+in      al, 0x61
+mov     ah, al
+or      al, 0x80
+out     0x61, al
+mov     al, ah
+out     0x61, al
 
-    ; send EOI to XT keyboard
-    in      al, 0x61
-    mov     ah, al
-    or      al, 0x80
-    out     0x61, al
-    mov     al, ah
-    out     0x61, al
+; send EOI to master PIC
+mov     al, 0x20
+out     0x20, al
 
-    ; send EOI to master PIC
-    mov     al, 0x20
-    out     0x20, al
-
-    popa
-    iret
+popa
+iret
 
 
 kbdbuf:

@@ -1,6 +1,11 @@
 pong:
 pusha
 call cls
+mov ax, 0xA000
+mov es, ax
+mov ah, 0x00
+mov al, 0x0F
+int 0x10
 mov [command], byte '1'
 mov [program], byte '5' ;set the program
 .loop:

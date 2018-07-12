@@ -82,7 +82,8 @@ ret
 %include "load.asm" ;loads the game
 %include "fight.asm" ;the basis of all Fight scenes
 %include "paint.asm" ;Paint, an attempt at mouse drivers
-%include "keys.asm" ;keyboard drivers
+%include "keys.asm" ;keyboard driver
 %include "pong.asm" ;pong, back for round 2
+%include "mouse.asm" ;mouse driver
 %include "game.asm" ;The main attraction, an RPG
 times 10240-($-$$) db 0

@@ -72,7 +72,7 @@ mov [command], byte 0x00
 mov [program], byte '0'
 mov [char], byte 0x00
 call disko
-mov ax, 0x530; Function 5301h: APM Connect real-mode interface
+mov ax, 0x5301; Function 5301h: APM Connect real-mode interface
 xor bx, bx; Device ID: 0000h (= system BIOS)
 int 0x15; Call interrupt: 15h
 
