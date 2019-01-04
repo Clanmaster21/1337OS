@@ -22,7 +22,7 @@ jmp .next
 
 .Health:
 cmp al, 0xD0 ;is the char 0xD0, set by game?
-jne .MaxHealth
+jl .normal
 push bx
 mov bx, Health
 call printS
@@ -123,14 +123,10 @@ jmp printS ;loops
 .done:
 ret
 
-print:
-mov ah , 0x0e ;Tells the BIOS interupt what to print
-int 0x10 ;calls BIOS interupt
-ret
-
 printn:
 call rows
-pusha ;save all registers
+push ax
+push bx ;save all registers
 mov bx, [cursor] ;move cursor to bx, as only bx can be used to reference an address
 mov ah, [colour] ; set colour of character to blue
 cmp al, 0xff ;is the char 0xff, set by draw?
@@ -150,11 +146,14 @@ jmp .fin
 .cont:
 mov [es:bx],ax ;set the bxth character to ax
 .fin:
-popa ;load all registers
+pop bx
+pop ax ;load all registers
 ret ;return
 
 rows:
-pusha
+push ax
+push bx
+push dx
 mov dx, 0
 mov ax, [cursor]
 mov bx, 0xA0
@@ -163,11 +162,14 @@ cmp ax, 0x19
 jl .done
 call cls
 .done:
-popa
+pop dx
+pop bx
+pop ax
 ret
 
 cls: ;clears the screen
-pusha
+push bx
+push cx
 xor bx, bx
 mov cx, 0x7F0
 
@@ -178,11 +180,14 @@ loop .loop
 
 mov [cursor], word 0x0
 call SetCursorPos
-popa
+pop cx
+pop bx
 ret
 
 backspace:
-pusha ;save all registers
+push ax
+push bx
+push dx ;save all registers
 cmp [program], byte '4'
 je .paint
 mov dx, 0
@@ -198,13 +203,17 @@ mov bx, [cursor] ;move cursor to bx
 mov [es:bx],ax ;set the bxth character to ax
 
 .end:
-popa ;load all registers
+pop dx
+pop bx
+pop ax ;load all registers
 call SetCursorPos
 ret ;return
 
 
 enter:
-pusha
+push ax
+push bx
+push dx
 mov dx, 0
 mov ax, [cursor]
 mov bx, 0xA0
@@ -213,11 +222,15 @@ add [cursor], word 0xA0
 sub [cursor], dx
 call rows
 call SetCursorPos
-popa
+pop dx
+pop bx
+pop ax
 ret
 
 SetCursorPos:
-pusha
+push ax
+push bx
+push dx
 mov dx, 0
 mov ax, [cursor]
 mov bx, 0xA0
@@ -227,7 +240,9 @@ mov bh, 0
 mov dh, al
 shr dl, 1
 int 10h
-popa
+pop dx
+pop bx
+pop ax
 ret
 
 colour:

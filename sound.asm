@@ -1,23 +1,25 @@
 beep:
-pusha
-        mov     al, 182         ; Prepare the speaker for the
-        out     43h, al         ;  note.
-        mov     ax, [note]        ; Frequency number (in decimal)
+push ax
+push bx
+mov     al, 182         ; Prepare the speaker for the
+out     43h, al         ;  note.
+mov     ax, [note]        ; Frequency number (in decimal)
                   		;  for middle C.
-        out     42h, al         ; Output low byte.
-        mov     al, ah          ; Output high byte.
-        out     42h, al 
-        in      al, 61h         ; Turn on note (get value from
+out     42h, al         ; Output low byte.
+mov     al, ah          ; Output high byte.
+out     42h, al 
+in      al, 61h         ; Turn on note (get value from
                                 ;  port 61h).
-        or      al, 00000011b   ; Set bits 1 and 0.
-        out     61h, al         ; Send new value.
-        mov     bx, 25          ; Pause for duration of note.
+or      al, 00000011b   ; Set bits 1 and 0.
+out     61h, al         ; Send new value.
+mov     bx, 25          ; Pause for duration of note.
 call pause
-        in      al, 61h         ; Turn off note (get value from
-                                ;  port 61h).
-        and     al, 11111100b   ; Reset bits 1 and 0.
-        out     61h, al         ; Send new value.
-popa
+in      al, 61h         ; Turn off note (get value from
+                        ;  port 61h).
+and     al, 11111100b   ; Reset bits 1 and 0.
+out     61h, al         ; Send new value.
+pop bx
+pop ax
 ret
 
 note:
@@ -35,9 +37,8 @@ mov [return], word piano.loop
 .loop:
 cmp [command], byte ' '
 je Uinput
-mov ax, 0x0088 ;move a tone to ax
-sub ax, 0x60 ; I think this is supposed to be bx
-mov bx, [command] ; as bx is now >60 if a character is pressed
+mov ax, 0x0028 ;move a tone to ax
+mov bx, [command] 
 call mult ;multiply them to get a tone
 mov ax, [ans]
 mov [note], ax
@@ -46,7 +47,9 @@ jmp Uinput
 jmp .loop
 
 tone: ;cycles through a load of tones at startup
-pusha
+push ax
+push bx
+push cx
 mov bx, 0x55
 mov ax, 0x00
 .loop:
@@ -58,7 +61,9 @@ add ax, 0x01
 add bx, 0x01
 cmp ax, 0x040
 jne .loop
-popa 
+pop cx
+pop bx
+pop ax
 ret
 
 pianoS:

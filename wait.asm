@@ -1,14 +1,20 @@
 pause:
-pusha
+push ax
+push cx
+push dx
 mov ah, 0x86 ;set action to wait
 mov cx, 0x0002
 mov dx ,0x0000
 int 0x15 ;waits for (cx*16^4)+dx microseconds
-popa
+pop dx
+pop cx
+pop ax
 ret
 
 pauseran:
-pusha
+push ax
+push cx
+push dx
 mov dx, [randint]
 sub dx, byte 0x30
 mov ah, 0x86 ;set action to wait
@@ -21,23 +27,33 @@ jae .finish
 int 0x15 ;waits for (cx*16^4)+dx microseconds
 
 .finish:
-popa
+pop dx
+pop cx
+pop ax
 ret
 
 smallPause:
-pusha
+push ax
+push cx
+push dx
 mov ah, 0x86 ;set action to wait
 mov cx, 0x0000
 mov dx ,0x2000
 int 0x15 ;waits for (cx*16^4)+dx microseconds
-popa
+pop dx
+pop cx
+pop ax
 ret
 
 longPause:
-pusha
+push ax
+push cx
+push dx
 mov ah, 0x86 ;set action to wait
 mov cx, 0x0020
 mov dx ,0x0000
 int 0x15 ;waits for (cx*16^4)+dx microseconds
-popa
+pop dx
+pop cx
+pop ax
 ret

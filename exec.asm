@@ -1,5 +1,6 @@
 exec:
-pusha 
+push ax
+push bx
 mov [char], byte 0x00 ;clear buffer
 cmp [command], byte 'h'; the help command
 jne .action 
@@ -35,12 +36,14 @@ add bx, [command]
 sub bx, 0x62 ;take 2*'1' since commands begin at 1 (should probably change this)
 mov bx, [bx] ;resolve address
 mov [return+2], bx ;save address for jumping
-popa ;restore registers
+pop bx  ;restore registers
+pop ax
 push word [return+2] ;push address for jumping
 ret ;jump
 
 .end: ;restore addresses, jump to [return]
-popa 
+pop bx
+pop ax 
 push word [return]
 ret
 
@@ -87,7 +90,8 @@ int 0x15; Call interrupt: 15h
 jmp .quit
 
 .quit: ;return to os
-popa
+pop bx
+pop ax
 jmp os
 
 .help:

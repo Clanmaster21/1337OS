@@ -1,5 +1,8 @@
 pong:
-pusha
+push ax
+push bx
+push cx
+push dx
 call cls
 mov [command], byte '1'
 mov [program], byte '5' ;set the program
@@ -172,13 +175,19 @@ sub cl, [.bally+1]
 
 cmp cl, 0x01
 jle .pbot ;check if it's hit the top or bottom of the paddle
-shl cl, 4
+shl cl, 1
+shl cl, 1
+shl cl, 1
+shl cl, 1
 add [.yvel], word 0x10 ;change yvel accordingly
 sub [.yvel], cx
 jmp .ptop
 
 .pbot:
-shl cl, 4
+shl cl, 1
+shl cl, 1
+shl cl, 1
+shl cl, 1
 sub [.yvel], cx ;change yvel accordingly
 add [.yvel], word 0x20
 
@@ -208,13 +217,19 @@ sub cl, [.bally+1]
 
 cmp cl, 0x01
 jle .cbot
-shl cl, 4
+shl cl, 1
+shl cl, 1
+shl cl, 1
+shl cl, 1
 add [.yvel], word 0x10
 sub [.yvel], cx
 jmp .ctop
 
 .cbot:
-shl cl, 4
+shl cl, 1
+shl cl, 1
+shl cl, 1
+shl cl, 1
 sub [.yvel], cx
 add [.yvel], word 0x20
 
@@ -241,7 +256,10 @@ call printS
 mov al, [kbdbuf + 0x1C] ;get enter key
 cmp al, 0x00
 je     .ent2con
-popa
+pop dx
+pop cx
+pop bx
+pop ax
 ret
 
 ;playerx is 10, cpux is 70, both are constant
