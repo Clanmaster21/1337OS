@@ -11,7 +11,7 @@ jmp .next ;coninue along string
 
 .name:
 cmp al, 0xFE ;is the char 0xfe, set by game?
-jne .Health
+jne .game
 push bx
 cmp [Insults], byte 0x00
 jne .insult
@@ -20,38 +20,17 @@ call printS
 pop bx
 jmp .next
 
-.Health:
-cmp al, 0xD0 ;is the char 0xD0, set by game?
+.game:
+cmp al, 0xD0
 jl .normal
+cmp al, 0xD8
+jg .normal
 push bx
-mov bx, Health
-call printS
-pop bx
-jmp .next
-
-.MaxHealth:
-cmp al, 0xD1 ;is the char 0xD0, set by game?
-jne .RAM
-push bx
-mov bx, MaxHealth
-call printS
-pop bx
-jmp .next
-
-.RAM:
-cmp al, 0xD3 ;is the char 0xD0, set by game?
-jne .RAMusage
-push bx
-mov bx, RAM
-call printS
-pop bx
-jmp .next
-
-.RAMusage:
-cmp al, 0xD2 ;is the char 0xD0, set by game?
-jne .EHP
-push bx
-mov bx, RAMusage
+xor ah, ah ;If I were allowing myself anything beyond the 8086 I'd do lea bx, [ax*2+ax+GameVars-0x270]
+mov si, ax
+shl ax, 0x01
+add si, ax
+lea bx, [si+GameVars-0x270]
 call printS
 pop bx
 jmp .next
@@ -67,50 +46,6 @@ call printS
 pop bx
 jmp .next
 
-.EHP:
-cmp al, 0xD4 ;is the char 0xD0, set by game?
-jne .EMaxHP
-push bx
-mov bx, EHP
-call printS
-pop bx
-jmp .next
-
-.EMaxHP:
-cmp al, 0xD5 ;is the char 0xD0, set by game?
-jne .ERAMusage
-push bx
-mov bx, EMaxHP
-call printS
-pop bx
-jmp .next
-
-.ERAMusage:
-cmp al, 0xD6 ;is the char 0xD0, set by game?
-jne .ERAM
-push bx
-mov bx, ERAMusage
-call printS
-pop bx
-jmp .next
-
-.ERAM:
-cmp al, 0xD7 ;is the char 0xD0, set by game?
-jne .Ename
-push bx
-mov bx, ERAM
-call printS
-pop bx
-jmp .next
-
-.Ename:
-cmp al, 0xD8 ;is the char 0xD0, set by game?
-jne .normal
-push bx
-mov bx, Ename
-call printS
-pop bx
-jmp .next
 
 .normal: ;for non-special chars
 call printn ;prints

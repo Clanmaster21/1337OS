@@ -14,24 +14,13 @@ jmp Uinput ;inputs for start/load
 call pause
 jmp .loop
 
-; we won't use Uinput, the game will require special keys and inputs larger than a character
 
 new:
 mov [name], byte 0x00
-mov [Points], word '10'
 mov [Insults], byte 0x00
 mov [char], byte 0x00 ;clear input
-mov [Charisma], word '10'
-mov [Strength], word '10'
-mov [Intelligence], word '10'
-mov [Dexterity], word '10'
-mov [Wisdom], word '10'
-mov [Constitution], word '10'
-call Ninput ;call procedure for name input
-call enter ;new line
-mov bx, name ;print name as a test (not used anymore)
-call printS
-ret
+jmp Ninput ;call procedure for name input
+
 gameS:
 db 'Welcome to the game', 0
 
@@ -41,17 +30,18 @@ mov bx, nameS
 call printS ;enter your name
 mov bx, name ;move bx to name
 push bx ;push bx as it's needed multiple times
+
 .do:
-call pause ;makes sure the input's aren't horrifically fast
+call pause ;makes sure the inputs aren't horrifically fast
 call key ;char now contains last keypress
 mov bx, char ;point bx to char
-cmp [char], word 0x00 ;check if there is a character
+cmp [char], byte 0x00 ;check if there is a character
 je .do ;skip if not
 
-cmp [char], word 0x0D ;if enter
+cmp [char], byte 0x0D ;if enter
 je .name_end ;end input
 
-cmp [char], word 0x08 ;if not backspace
+cmp [char], byte 0x08 ;if not backspace
 jne .cont ;continue as normal
 pop bx ;else, take bx
 sub bx, 0x01 ;take one from the location
@@ -59,6 +49,7 @@ push bx ;put bx back
 mov [char], byte 0x00 ;set the character to empty
 call backspace ;call screen backspace to edit screen
 jmp .do ;go to top of loop
+
 .cont:
 call printS ;print
 mov ax, [char] ;move the char to ax
@@ -71,8 +62,8 @@ mov [char], byte 0x00 ;clear buffer
 jmp .do
 
 .name_end:
+mov [char], byte 0x00
 pop bx ;free the space being used
-call createChar ;call createChar
 
 createChar:
 mov bx, StatsS
@@ -80,218 +71,121 @@ call printS ;print out stat choices
 sub [cursor], word 0xA4 ;set cursor position
 call SetCursorPos ;make it visible
 .loop:
-call .check
-call Ginput ;game_key now contains special
-cmp [game_key], byte 0x48
+mov [char+2], byte 0x00 ;clear input
+call key ;char+2 now contains scan code
+cmp [char+2], byte 0x48
 je .up ;if up
-cmp [game_key], byte 0x50
+cmp [char+2], byte 0x50
 je .down ;if down
-cmp [game_key], byte 0x4D
+cmp [char+2], byte 0x4D
 je .right ;if right
-cmp [game_key], byte 0x4B
+cmp [char+2], byte 0x4B
 je .left ;if left
-cmp [game_key], byte 0x1C
+cmp [char], byte 0x0D
 je firstroll
-mov [game_key], byte 0x00 ;clear input
+mov [char+2], byte 0x00 ;clear input
 call pause
-call .PointsRemain
 jmp .loop ;loop
 
-.up:
+.up: ;moves cursor up a row
 cmp [cursor],word 0x128 ;if hit upper limit
 jl .loop ;do nothing
 sub [cursor], word 0xA0 ;lower row by 1
 call SetCursorPos ;make it visible
-mov [game_key], byte 0x00 ;clear input
+dec byte [Stats.row]
 jmp .loop
 
-.down:
+.down: ;moves cursor down a row
 cmp [cursor],word 0x350 ;lower limit
 jg .loop
 add [cursor], word 0xA0 ;lower row by 1
 call SetCursorPos
-mov [game_key], byte 0x00
+inc byte [Stats.row]
 jmp .loop
 
-.right:
-pusha
-cmp [Points], byte '0'
-jne .continue
-cmp [Points+1], byte '0'
-jne .continue
-popa
-mov [game_key], byte 0x00 ;clear inputs
-jmp .loop
-.continue:
-mov bx, [cursor] ;make bx the cursor position
-add [es:bx], word 0x01 ;add 1 to the value
-mov ax, [es:bx] ;put the value in ax
-cmp al, ':' ;if it's the character after 9
-je .increment ;we need to increase the next digit
-sub bx, word 0x02 ;if that's not the case, we need to check if it's 20
-mov cx, [es:bx] ;we make cx that character
-cmp cl, '2' ;we see if it's a 2
-jne $+0xF ;if not, ignore
-cmp al, '0' ;if so, check there's a 0. I don't think this bit runs, if it did the code wouldn't work logically.
-je $+0xB ;if not ignore, this shouldn't be necessary but I'm unwilling to touch working code
-mov al, 0x00 ;blank al, for the sake of it
-add bx, word 0x02 ;move bx along
-mov [es:bx], byte '0' ;reset it to 0
-mov [game_key], byte 0x00 ;clear inputs
-popa
-jmp .loop ;continue looping like nothing ever happened
-
-.left:
-pusha
-mov bx, [cursor] ;move bx to the cursor position
-sub [es:bx], word 0x01 ;take one from the character there
-mov ax, [es:bx] ;move the new char to ax
-cmp al, '/' ;if we've gone too low
-je .decrement ;decrease the next digit
-mov [game_key], byte 0x00 ;clear the input
-popa
-jmp .loop ;continue looping
-
-.increment:
-sub [Points+1], byte 0x02
-mov al, '0' ;change al to 0
-mov [es:bx], ax ;make the current screen character 0
-sub bx, 0x02 ;go back a screen character
-add [es:bx], word 0x01 ;add one to it
-mov [game_key], byte 0x00 ;continue
-popa
-jmp .loop
-
-.decrement:
-add [Points+1], word 0x02
-mov al, '9' ;make al 9
-mov [es:bx], ax ;make the current screen character 9
-sub bx, 0x02 ;go back a character
-sub [es:bx], word 0x01 ;take one from it
-mov ax, [es:bx] ;make ax that character
-cmp al, byte '/' ;if we've not gone too low
-jne .low ;ignore this next bit
-add [es:bx], byte 0x01 ;add one back to the current char
-add bx, 0x02 ;go along a char
-mov ax, [es:bx]
-mov al, '0'
-mov [es:bx], ax ;make is 0
-sub [Points+1], byte 0x02
-.low:
-mov [game_key], byte 0x00 ;continue
-popa
-jmp .loop
-
-.PointsRemain:
-pusha
-mov bx, 0xC6 ;set bx to correct column and row
-mov ax, [es:bx] ;get the char there
-mov [Charisma], al ;set the first digit of Charisma to it
-add bx, 0xA0 ;go down a row
-mov ax, [es:bx]
-mov [Intelligence], al ;repeat for intellignece
-add bx, 0xA0
-mov ax, [es:bx]
-mov [Strength], al ;repeat for strength
-add bx, 0xA0
-mov ax, [es:bx]
-mov [Wisdom], al ;repeat for wisdom
-add bx, 0xA0
-mov ax, [es:bx]
-mov [Dexterity], al ;repeat for dexterity
-add bx, 0xA0
-mov ax, [es:bx]
-mov [Constitution], al ;repeat for Constitution
-
-mov bx, 0xC8 ;set bx to correct column and row for second digit of stat
-mov ax, [es:bx] ;move the char to ax
-cmp al, [Charisma+1] ;compare it to the second digit of charisma
-mov [Charisma+1], al
-jne .ChangePoints ;if it's not the same, we're screwed
-add bx, 0xA0
-mov ax, [es:bx] ;move the char to ax
-cmp al, [Intelligence+1] ;compare it to the second digit of intelligence
-mov [Intelligence+1], al
-jne .ChangePoints ;if it's not the same, we're screwed
-add bx, 0xA0
-mov ax, [es:bx] ;move the char to ax
-cmp al, [Strength+1] ;compare it to the second digit of Strength
-mov [Strength+1], al
-jne .ChangePoints ;if it's not the same, we're screwed
-add bx, 0xA0
-mov ax, [es:bx] ;move the char to ax
-cmp al, [Wisdom+1] ;compare it to the second digit of Wisdom
-mov [Wisdom+1], al
-jne .ChangePoints ;if it's not the same, we're screwed
-add bx, 0xA0
-mov ax, [es:bx] ;move the char to ax
-cmp al, [Dexterity+1] ;compare it to the second digit of dexterity
-mov [Dexterity+1], al
-jne .ChangePoints ;if it's not the same, we're screwed
-add bx, 0xA0
-mov ax, [es:bx] ;move the char to ax
-cmp al, [Constitution+1] ;compare it to the second digit of constitution
-mov [Constitution+1], al
-jne .ChangePoints ;if it's not the same, we're screwed
-
-popa
-ret
-
-.ChangePoints:
-jl .add;if above
-sub [Points+1], byte 0x02 ;sub 2 to counter add 1
-.add: ;then only add
-add [Points+1], byte 0x01 ;add 1
-mov bx, 0x486 ;set cursor position
-mov al, [Points] ;edit points on screen
-mov [es:bx], al
-add bx, 0x02 ;edit second digit
-mov al, [Points+1]
-mov [es:bx], al
-popa
-jmp .loop
-
-.check:
-pusha
-cmp [Points+1], byte '/' ;if not too low
-jne .next ;skip
-mov [Points+1], byte '9' ;set digit to 9
-sub [Points], byte 0x01 ;take 1 from next digit
-.next:
-cmp [Points+1], byte ':' ;if not too high
-jne .finish ;skip
-mov [Points+1], byte '0' ;set digit to 0
-add [Points], byte 0x01 ;add 1 to next digit
-.finish:
-mov bx, 0x486 ;edit screen to new points value
+.right: ;If there's unallocated points, then increment the stat corresponding to the current row, decrement points and print both on the screen
+test [Points], byte 0xFF
+jz .loop
+push ax
+push bx
+xor ah, ah
 mov al, [Points]
+dec al
+das
+mov [Points], al
+push word [cursor]
+mov [cursor], word 0x350+0xA0+0xA0-0x08
+call .printdec
+pop word [cursor]
+mov bx, Charisma
+add bx, [Stats.row]
+mov al, [bx]
+inc al
+daa
+mov [bx], al
+call .printdec
+pop bx
+pop ax
+jmp .loop
+
+
+.left: ;If there's points in the stat on the current row, then decrement the stat, decrement points and print both on the screen
+push ax
+push bx
+xor ah, ah
+mov bx, Charisma
+add bx, [Stats.row]
+test [bx], byte 0xFF
+jnz .notzero ;I feel like there should be a more elegant solution here
+pop bx
+pop ax
+jmp .loop
+.notzero:
+mov al, [bx]
+dec al
+das
+mov [bx], al
+call .printdec
+mov al, [Points]
+inc al
+daa
+mov [Points], al
+push word [cursor]
+mov [cursor], word 0x350+0xA0+0xA0-0x08
+call .printdec
+pop word [cursor]
+pop bx
+pop ax
+jmp .loop
+
+
+.printdec: ;prints al where al is in packed Binary Coded Decimal
+push ax
+push bx
+push cx
+mov ah, al
+and ax, 0xF00F
+mov cl, 0x04
+or al, 0x30
+mov bx, [cursor]
 mov [es:bx], al
-add bx, 0x02
-mov al, [Points+1]
-mov [es:bx], al
-popa
+dec bx
+dec bx
+shr ax, cl
+or ah, 0x30
+mov [es:bx], ah
+pop cx
+pop bx
+pop ax
 ret
+
 nameS:
 db 'Enter your name:', 0
 
-Ginput:
-pusha
 
-.code:
-mov ah, 0x01 ;check if a key has been pressed
-int 0x16 ;call the interrupt
-jz .nil ;if nothing, skip
-
-mov ah, 0x00 ;read last key pressed
-int 0x16 ;call the interrupt
-mov [game_key], ah ;replace char with the keypress
-jmp .code ;repeat until there are no more inputs
-
-.nil:
-popa
-ret
 
 firstroll:
+mov [char+2], byte 0x00
 mov [cursor], word 0x500 ;set cursor position
 mov bx, rollSc ;we're rolling for charisma, c
 call printS 
@@ -327,8 +221,9 @@ db 'Although your name is ', 0xFE, ' people call you whatever they feel like cal
 .successS:
 db 'Most people respect you enough to use your real name', 0x00
 ent2con:
-pusha
-mov [game_key], byte 0x00
+push bx
+push cx
+mov [char], byte 0x00
 mov bx, pressenterf
 call printS
 mov cx, [cursor]
@@ -342,9 +237,9 @@ push cx
 mov [count], byte 0x30
 
 .input1:
-call Ginput
-cmp [game_key], byte 0x1C
-mov [game_key], byte 0x00
+call key
+cmp [char+2], byte 0x1C
+mov [char+2], byte 0x00
 je .cont
 call smallPause
 sub [count],  byte 0x01
@@ -359,9 +254,9 @@ push cx
 mov [count], byte 0x30
 
 .input2:
-call Ginput
-cmp [game_key], byte 0x1C
-mov [game_key], byte 0x00
+call key
+cmp [char+2], byte 0x1C
+mov [char+2], byte 0x00
 je .cont
 call smallPause
 sub [count],  byte 0x01
@@ -372,7 +267,8 @@ jmp .loop
 pop cx
 mov bx, pressenterf
 call printS
-popa
+pop cx
+pop bx
 ret
 
 roll2S:
@@ -402,27 +298,32 @@ db 0x0D, 'Constitution:    ', 0x3C, ' 10 ' , 0x3E
 db 0x0D, 'Points Remaining: ', ' 10 ' , 0x00
 
 Charisma:
-db '10', 0
+db 00010000b
 
 Intelligence:
-db '10', 0
+db 00010000b
 
 Strength:
-db '10', 0
+db 00010000b
 
 Wisdom:
-db '10', 0
+db 00010000b
 
 Dexterity:
-db '10', 0
+db 00010000b
 
 Constitution:
-db '10', 0
+db 00010000b
+
+Points:
+db 00010000b
+
+Stats.row:
+dw 0x0005
 
 Insults:
 db 0x00
-Points:
-db '10', 0
+
 name:
 db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 count:
@@ -435,5 +336,3 @@ pressenter:
 db 'Press enter to continue', 0
 pressenterf:
 db '                       ', 0
-game_key:
-db 0x00, 0x00

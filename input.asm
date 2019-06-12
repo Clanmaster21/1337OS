@@ -1,5 +1,5 @@
 key:
-pusha
+push ax
 
 .code:
 mov ah, 0x01 ;check if a key has been pressed
@@ -8,12 +8,12 @@ jz .nil ;if nothing, skip
 
 mov ah, 0x00 ;read last key pressed
 int 0x16 ;call the interrupt
-mov bx, char ;point bx to the char
 mov [char], al ;replace char with the keypress
+mov [char+2], ah ;save scan code too
 jmp .code ;repeat until there are no more inputs
 
 .nil:
-popa
+pop ax
 ret
 
 Uinput: ;allows user to type on the screen
@@ -50,4 +50,4 @@ push word [return]
 ret
 
 char:
-db '0', 0
+db '0', 0, 0x48

@@ -192,7 +192,7 @@ mov ax, [cursor]
 push ax
 
 .loop:
-call Ginput
+call key
 cmp [OSfamily], byte 0x00 ;if too far left
 jne .up
 mov [OSfamily], byte 0x03 ;set to option 3
@@ -201,11 +201,11 @@ cmp [OSfamily], byte 0x04 ;if too far right
 jne .down
 mov [OSfamily], byte 0x01 ;set to option 1
 .down:
-cmp [game_key], word 0x4D 
+cmp [char], word 0x4D 
 je .right ;if right arrow
-cmp [game_key], word 0x4B
+cmp [char], word 0x4B
 je .left ;if left arrow
-cmp [game_key], word 0x1C ;if enter
+cmp [char], word 0x1C ;if enter
 je .return
 pop ax ;get cursor
 mov [cursor], ax ;mov cursor
@@ -236,12 +236,12 @@ jmp [ChosenOS]
 
 .right:
 add [OSfamily], byte 0x01
-mov [game_key], byte 0x00
+mov [char], byte 0x00
 jmp .loop
 
 .left:
 sub [OSfamily], byte 0x01
-mov [game_key], byte 0x00
+mov [char], byte 0x00
 jmp .loop
 
 .highlight:
@@ -264,20 +264,36 @@ db 0x01, 0x00
 OSgen:
 db 0x01, 0x00
 
-RAM:
+
+
+
+
+
+; The order of variables is RAM, RAMusage, Health, MaxHealth, RWspeed, EHP, EMaxHP, ERAM, ERAMusage, Ename
+GameVars:
 db '04', 0x00
 
-RAMusage:
 db '00', 0x00
 
-Health:
 db '10', 0x00
 
-MaxHealth:
-db '10', 0x00
+db '10', 0x00 
 
-RWspeed:
 db '01', 0x00
+
+db '10', 0x00
+
+db '10', 0x00
+
+db '04', 0x00
+
+db '00', 0x00
+
+db 'Middle Aged Woman', 0x00
+
+
+
+
 
 Scene:
 db 0x00, 0x00

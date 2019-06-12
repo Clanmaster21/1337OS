@@ -42,13 +42,3 @@ db 'You keep reading the words on the screen. It says "Initiating battle routine
 Scene2S:
 db 'Scene 2', 0x00
 
-EHP:
-db '10', 0x00
-EMaxHP:
-db '10', 0x00
-ERAM:
-db '04', 0x00
-ERAMusage:
-db '00', 0x00
-Ename:
-db 'Middle Aged Woman', 0x00
