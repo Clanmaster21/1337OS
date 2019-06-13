@@ -1,17 +1,24 @@
-printS:
-mov cx,[bx] ;sets cx to a character of the string referenced by bx
-mov al, cl ;move the last byte of cx to al
+printS: ; 0xFF is colour character, 0xFE is name, 0xFD is space character, 0xD0 to 0xD8 are variables
+mov ax,[bx] ;sets ax to a character of the string referenced by bx
 cmp al, 0x00 ;is al empty?
 je .done ;if so goto finish
 
 cmp al, 0x0D ;is it enter
-jne .name ;if not, continue to next special
+jne .colour ;if not, continue to next special
 call enter ;if so, new line
 jmp .next ;coninue along string
 
+.colour:
+cmp al, 0xFF
+jne .name
+inc bx
+mov ax, [bx]
+mov [colour], al
+jmp .next
+
 .name:
 cmp al, 0xFE ;is the char 0xfe, set by game?
-jne .game
+jne .space
 push bx
 cmp [Insults], byte 0x00
 jne .insult
@@ -19,6 +26,13 @@ mov bx, name
 call printS
 pop bx
 jmp .next
+
+.space: ;prints a bit pattern where 1 represents the foreground colour and 0 represents the background colour
+cmp al, 0xFD
+jne .game
+inc bx
+jmp space
+
 
 .game:
 cmp al, 0xD0
@@ -49,57 +63,31 @@ jmp .next
 
 .normal: ;for non-special chars
 call printn ;prints
-add [cursor], word 0x02 ;goes to next position on screen
-call SetCursorPos
 
 .next:
-add bx, 0x1 ;tries next character
+inc bx ;tries next character
 jmp printS ;loops
 .done:
 ret
 
-printn:
+printn: 
 call rows
 push ax
 push bx ;save all registers
 mov bx, [cursor] ;move cursor to bx, as only bx can be used to reference an address
 mov ah, [colour] ; set colour of character to blue
-cmp al, 0xff ;is the char 0xff, set by draw?
-jne .fd
-mov ah, 0x25
-
-.fd:
-cmp al, 0xfd
-jne .fc
-mov [colour], byte 0x07
-jmp .fin
-.fc:
-cmp al, 0xfc
-jne .cont
-mov [colour], byte 0x09
-jmp .fin
-.cont:
-mov [es:bx],ax ;set the bxth character to ax
-.fin:
+mov [es:bx],ax ;set the bxth character to 
 pop bx
 pop ax ;load all registers
+call SetCursorPos
+add [cursor], word 0x02 ;goes to next position on screen
 ret ;return
 
-rows:
-push ax
-push bx
-push dx
-mov dx, 0
-mov ax, [cursor]
-mov bx, 0xA0
-div bx
-cmp ax, 0x19
+rows: ;Some programs bypass printn but still use rows, so I haven't merged the two
+cmp [cursor], word 0xFA0
 jl .done
 call cls
 .done:
-pop dx
-pop bx
-pop ax
 ret
 
 cls: ;clears the screen
@@ -123,20 +111,15 @@ backspace:
 push ax
 push bx
 push dx ;save all registers
-cmp [program], byte '4'
-je .paint
 mov dx, 0
 mov ax, [cursor]
 mov bx, 0xA0
 div bx
 cmp dx, word 0x00
 je .end
-.paint:
-sub [cursor], word 0x02 ;go back a character
-mov ax, 0x00 ;we need to clear a char
-mov bx, [cursor] ;move cursor to bx
-mov [es:bx],ax ;set the bxth character to ax
-
+sub [cursor], word 0x02
+mov bx, [cursor]
+mov [es:bx], word 0x0000
 .end:
 pop dx
 pop bx
@@ -180,5 +163,26 @@ pop bx
 pop ax
 ret
 
+space:
+push ax
+push bx
+push cx
+mov [bitss], byte 0x08
+mov cx, [bx]
+.loop:
+shl cl, 0x01
+salc
+and al,0xDB
+call printn
+dec byte [bitss]
+jnz .loop
+pop cx
+pop bx
+pop ax
+jmp printS.next
+
 colour:
+db 0x09
+
+bitss:
 db 0x09

@@ -17,7 +17,8 @@ pop ax
 ret
 
 Uinput: ;allows user to type on the screen
-pusha
+push ax
+push bx
 call key ; char will now contain the latest keypress
 mov bx, char ;point bx to char
 cmp [char], word 0x00 ;check if there is a character
@@ -32,7 +33,8 @@ jmp .skip ;not a printable character, so skip.
 .next:
 cmp [char], byte 0x0D ;is it enter?
 jne .print ;if not, print
-popa
+pop bx
+pop ax
 jmp exec ;we need to try excecuting what the user has inputted
 jmp .print
 
@@ -44,7 +46,8 @@ mov [char], byte 0x00 ;clear buffer
 
 .skip:
 in al, 0x60
-popa
+pop bx
+pop ax
 
 push word [return]
 ret

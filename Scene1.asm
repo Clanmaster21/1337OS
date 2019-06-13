@@ -81,7 +81,8 @@ mov bx, .intro17
 call printS
 call ent2con
 call enter
-mov [ChosenOS], word .cont ;holds where to return to
+push ax
+push bx
 jmp ChooseOS ;choose OS
 .cont:
 call enter
@@ -125,139 +126,119 @@ db 'Once in the clearing, you see a singular building. You seem to recall that p
 db 'You wait for a few moments, and then a man opens the door. He speaks before you have a chance to.', 0x00
 
 .intro4:
-db 0xFD,"Man:", 0xFC,"Oh, you're finally here. I've been waiting for ages, come in.", 0x00
+db 0xFF,0x07,"Man:", 0xFF,0x09,"Oh, you're finally here. I've been waiting for ages, come in.", 0x00
 
 .intro5:
-db 0xFD,"You:", 0xFC, "You've been expecting me?", 0x00
+db 0xFF,0x07,"You:", 0xFF,0x09, "You've been expecting me?", 0x00
 
 .intro6:
-db 0xFD,"Man:", 0xFC,"Yes, you were supposed to be here hours ago. Now, I need to see your beta testing badge.", 0x00
+db 0xFF,0x07,"Man:", 0xFF,0x09,"Yes, you were supposed to be here hours ago. Now, I need to see your beta testing badge.", 0x00
 
 .intro7:
-db 0xFD,"You:", 0xFC,"I don't have one, I don't think I'm the person you're after.", 0x00
+db 0xFF,0x07,"You:", 0xFF,0x09,"I don't have one, I don't think I'm the person you're after.", 0x00
 
 .intro8:
-db 0xFD,"Man:", 0xFC,"Hmm, then why are you here?", 0x00
+db 0xFF,0x07,"Man:", 0xFF,0x09,"Hmm, then why are you here?", 0x00
 
 .intro9:
-db 0xFD,"You:", 0xFC,"I'm lost, I was going to ask for directions.", 0x00
+db 0xFF,0x07,"You:", 0xFF,0x09,"I'm lost, I was going to ask for directions.", 0x00
 
 .intro10:
-db 0xFD,"Man:", 0xFC,"Well, I could help you, but I still need a beta tester for this new processor, so how about we make a deal? I'll give you this motherboard and processor, and in return I'll give you directions.", 0x00
+db 0xFF,0x07,"Man:", 0xFF,0x09,"Well, I could help you, but I still need a beta tester for this new processor, so how about we make a deal? I'll give you this motherboard and processor, and in return I'll give you directions.", 0x00
 
 .intro11:
 db 'That seems completely weighed in your favour.', 0x00
 
 .intro12:
-db 0xFD,"You:", 0xFC,"Seems fair to me.", 0x00
+db 0xFF,0x07,"You:", 0xFF,0x09,"Seems fair to me.", 0x00
 
 .intro13:
 db 'You receive a motherboard, with an unknown processor in the socket. You notice a lack of RAM and hard disk, among other things.', 0x00
 
 .intro14:
-db 0xFD,"You:", 0xFC,"You know this won't be able to run right?", 0x00
+db 0xFF,0x07,"You:", 0xFF,0x09,"You know this won't be able to run right?", 0x00
 
 .intro15:
-db 0xFD,"Man:", 0xFC,"Well, the actual beta tester was supposed to have the other parts, but I'll see what I can find.", 0x00
+db 0xFF,0x07,"Man:", 0xFF,0x09,"Well, the actual beta tester was supposed to have the other parts, but I'll see what I can find.", 0x00
 
 .intro16:
 db 'The man walks off to another room searching for parts. You decide to search through the bag that you are carying. By some miracle you produce a stick of RAM from the bag.', 0x00
 
 .intro17:
-db 0xFD,"Man:", 0xFC,"All I could find was this corrupted hard drive, I'll need to install an OS for you. So which one do you want?", 0x00
+db 0xFF,0x07,"Man:", 0xFF,0x09,"All I could find was this corrupted hard drive, I'll need to install an OS for you. So which one do you want?", 0x00
 
 .intro18:
-db 0xFD,"Man:", 0xFC,"Ok, I have that installing, now for some RAM.", 0x00
+db 0xFF,0x07,"Man:", 0xFF,0x09,"Ok, I have that installing, now for some RAM.", 0x00
 
 .intro19:
-db 0xFD,"You:", 0xFC,"I have some here, Now we just need a way for me to interact with it...", 0x00
+db 0xFF,0x07,"You:", 0xFF,0x09,"I have some here, Now we just need a way for me to interact with it...", 0x00
 
 .intro20:
-db 0xFD,"Man:", 0xFC,"I've got an old laptop we can destroy, that'll provide power and peripherals. Now, for those directions I promised. Go that way through the forest, along the path, and eventually you'll get to a city.", 0x00
+db 0xFF,0x07,"Man:", 0xFF,0x09,"I've got an old laptop we can destroy, that'll provide power and peripherals. Now, for those directions I promised. Go that way through the forest, along the path, and eventually you'll get to a city.", 0x00
 
 .intro21:
 db 'You wait for your OS to install', 0x00
 
 .intro22:
-db 0xFD,"Man:", 0xFC,"Here you go, I added a few basic programs, should be powerful enough to get you through the forest", 0x00
+db 0xFF,0x07,"Man:", 0xFF,0x09,"Here you go, I added a few basic programs, should be powerful enough to get you through the forest", 0x00
 
 .intro23:
 db 'You thank the man and leave, disregarding his final confusing statement. You find the path he was referencing, and continue down it', 0x00
 
 ChosenOS:
-dw 0x00
+db 0x00
 
 ChooseOS:
-mov ax, [cursor]
-push ax
 
-.loop:
 call key
-cmp [OSfamily], byte 0x00 ;if too far left
-jne .up
-mov [OSfamily], byte 0x03 ;set to option 3
-.up:
-cmp [OSfamily], byte 0x04 ;if too far right
-jne .down
-mov [OSfamily], byte 0x01 ;set to option 1
-.down:
-cmp [char], word 0x4D 
-je .right ;if right arrow
-cmp [char], word 0x4B
-je .left ;if left arrow
-cmp [char], word 0x1C ;if enter
-je .return
-pop ax ;get cursor
-mov [cursor], ax ;mov cursor
-push ax ;push cursor
-cmp [OSfamily], byte 0x01 ;if OS is 1
-push $+6 ;push location to return to
-je .highlight ;highlight option 1
-pop cx ;keeps the stack clear
+push word [cursor]
+xor bh, bh
+mov bl, [ChosenOS]
+shl bl, 0x01
+mov bx, [bx+.addresses]
+mov [bx+1], byte 0x09
+
+cmp [char+2], byte 0x4E ;right key
+adc [ChosenOS], byte 0x00
+cmp [char+2], byte 0x4C ;left key
+salc
+shl al, 0x01
+add [ChosenOS], al
+cmp [char+2], byte 0x4B
+adc [ChosenOS], byte 0x00
+and [ChosenOS], byte 0x03
+
+xor bh, bh
+mov bl, [ChosenOS]
+shl bl, 0x01
+mov bx, [bx+.addresses]
+mov [bx+1], byte 0x07
+
 mov bx, OSfamily1
 call printS
-cmp [OSfamily], byte 0x02
-push $+6 ;push location to return to
-je .highlight
-pop cx
-mov bx, OSfamily2
-call printS
-cmp [OSfamily], byte 0x03
-push $+6 ;push location to return to
-je .highlight
-pop cx
-mov bx, OSfamily3
-call printS
-jmp .loop
+call smallPause
+pop word [cursor]
 
-.return:
+cmp [char+2], byte 0x1C
+mov [char+2], byte 0x00
+jne ChooseOS
+pop bx ;since we pushed cursor earlier
+pop bx
+pop ax
+jmp Scene1.cont
 
-jmp [ChosenOS]
-
-.right:
-add [OSfamily], byte 0x01
-mov [char], byte 0x00
-jmp .loop
-
-.left:
-sub [OSfamily], byte 0x01
-mov [char], byte 0x00
-jmp .loop
-
-.highlight:
-mov bx, .highlightS
-call printS
-ret ;takes whatever's on the stack, which we've set up
-
-.highlightS:
-db 0xFD, 0x00
+.addresses:
+dw OSfamily1, OSfamily2, OSfamily3, OSfamily4
 
 OSfamily1:
-db '     MS-DOS      ',0xFC, 0x00
+db 0xFF,0x09,'Apple-DOS',0xFD, 0x00
 OSfamily2:
-db 'Apple-DOS      ',0xFC, 0x00
+db 0xFF,0x09,'MS-DOS',0xFD, 0x00
 OSfamily3:
-db 'UNIX seventh edition',0xFC, 0x00
+db 0xFF,0x09,'UNIX seventh edition',0xFD, 0x00
+OSfamily4:
+db 0xFF,0x09,'1337 OS', 0x00
+
 OSfamily:
 db 0x01, 0x00
 

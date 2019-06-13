@@ -1,5 +1,4 @@
 gamestart:
-pusha
 mov [command], byte 0x00
 mov [char], byte 0x00 ;clear past inputs
 mov [program], byte '3' ;set program
@@ -10,8 +9,8 @@ call printS ;welcome message
 call enter
 
 .loop:
+call smallPause
 jmp Uinput ;inputs for start/load
-call pause
 jmp .loop
 
 
@@ -45,6 +44,7 @@ cmp [char], byte 0x08 ;if not backspace
 jne .cont ;continue as normal
 pop bx ;else, take bx
 sub bx, 0x01 ;take one from the location
+mov [bx], byte 0x00
 push bx ;put bx back
 mov [char], byte 0x00 ;set the character to empty
 call backspace ;call screen backspace to edit screen
@@ -220,12 +220,12 @@ db 'Although your name is ', 0xFE, ' people call you whatever they feel like cal
 
 .successS:
 db 'Most people respect you enough to use your real name', 0x00
+
 ent2con:
 push bx
 push cx
 mov [char], byte 0x00
-mov bx, pressenterf
-call printS
+call enter
 mov cx, [cursor]
 push cx
 .loop:
@@ -272,7 +272,9 @@ pop bx
 ret
 
 roll2S:
-pusha
+push ax
+push bx
+push dx
 mov ax, [roll] ;move roll to ax
 mov dx, 0x00 ;clear dx
 mov bx, 0x0A ;move 10 to bx
@@ -283,7 +285,9 @@ mov [rollS+1], dx
 add [rollS+1], byte 0x30
 mov bx, rollS
 call printS
-popa
+pop dx
+pop bx
+pop ax
 ret
 
 rollS:
@@ -335,4 +339,4 @@ db 'Roll for Charisma', 0
 pressenter:
 db 'Press enter to continue', 0
 pressenterf:
-db '                       ', 0
+db 0xFD, 0x00,0xFD, 0x00,0xFD, 0x00, 0
