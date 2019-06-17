@@ -1,30 +1,82 @@
-pause:
+pause: ;pauses for cx:dx microseconds
+;converts to number of ticks from a 1.193182MHz clock
 push ax
-push cx
+push bx
+
+mov ax, cx
+mov cl, [shift]
+shl dx, cl
+rcl ax, cl
+mov cx, ax
+; Since each cx is 2**16 microseconds, and each microsecond is 1.193182 clock ticks, then we want to wait for 
+;cx * 2**16 * 1.193182 = cx * 78196.3755 = cx * 2**16 + cx * 12660 + cx * 24612 * 2**-16   clock ticks, which can be done with integer arithmetic
+;We do something similar for dx, getting dx * 1.193182 = dx + dx * 12660 * 2**-16
+mov ax, 12660 
 push dx
-mov ah, 0x86 ;set action to wait
-mov cx, 0x0002
-mov dx ,0x0000
-int 0x15 ;waits for (cx*16^4)+dx microseconds
+mul cx
+add dx, cx
+mov [overflow], dx
+mov bx, ax
+mov ax, 24612 
+mul cx
+mov ax, dx
+add ax, bx
+adc [overflow], word 0x0000
 pop dx
-pop cx
+add ax, dx
+adc [overflow], word 0x0000
+mov bx, ax
+mov ax, 12660
+mul dx
+add bx, dx
+adc [overflow], word 0x000
+mov ax, bx
+jz .loop1
+call gettime
+dec word [overflow]
+
+.loop: ;wait until overflow is zero
+call gettime
+mov dx, [time+2]
+sub dx, [time]
+sub ax, dx
+sbb [overflow], word 0x0000
+jnc .loop
+
+.loop1: ;wait for the remainder in ax
+call gettime
+mov dx, [time+2]
+sub dx, [time]
+sub ax, dx
+jnc .loop1
+
+pop bx
 pop ax
+ret
+
+.toggle:
+not byte [shift]
+add [shift], byte 0x02
+jmp os
+
+pause2: ;pauses based on dx only, for shorter pauses
+push cx
+xor cx, cx
+call pause
+pop cx
 ret
 
 pauseran:
 push ax
 push cx
 push dx
-mov dx, [randint]
-sub dx, byte 0x30
+xor dh, dh
+mov dl, [randint]
 mov ah, 0x86 ;set action to wait
 mov cx, 0x0002
 add cx, dx
-mov dx ,0x0000
-add dx, cx
-int 0x15 ;waits for (cx*16^4)+dx microseconds
-jae .finish
-int 0x15 ;waits for (cx*16^4)+dx microseconds
+mov dx, cx
+call pause
 
 .finish:
 pop dx
@@ -32,28 +84,84 @@ pop cx
 pop ax
 ret
 
-smallPause:
+debug: ;prints the general purpose registers
+push dx
+push cx
+push bx
+mov dx, ax
+mov di, .debugS+0x08
+mov si, .debugS+0x04
+mov cl, 0x04
+mov bx, array
+
+.loop:
+mov al, dl
+and al, 0x0F
+xlat
+mov [di], al
+dec di
+ror dx, cl
+cmp si, di
+jnz .loop
+
+pop dx
+add si, 0x0A
+add di, 0x0A+0x04
+dec byte [.count]
+jnz .loop
+
+mov bx, .debugS
+call printS
+jmp $
+
+.count:
+db 0x04
+
+.debugS:
+db 'ax:0x', 0x00, 0x00, 0x00, 0x00, 0x0D
+db 'bx:0x', 0x00, 0x00, 0x00, 0x00, 0x0D
+db 'cx:0x', 0x00, 0x00, 0x00, 0x00, 0x0D
+db 'dx:0x', 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00
+
+array:
+db '0123456789ABCDEF'
+
+gettime:
 push ax
 push cx
-push dx
-mov ah, 0x86 ;set action to wait
-mov cx, 0x0000
-mov dx ,0x2000
-int 0x15 ;waits for (cx*16^4)+dx microseconds
-pop dx
+pushf
+cli
+mov cl, 0x08
+xor ax, ax
+out 0x43, al
+in al, 0x40
+rol ax, cl
+in al, 0x40
+rol ax, cl
+mov cx, [time]
+mov [time], ax
+mov [time+2], cx
+sti
+popf
 pop cx
 pop ax
 ret
 
-longPause:
-push ax
-push cx
-push dx
-mov ah, 0x86 ;set action to wait
-mov cx, 0x0020
-mov dx ,0x0000
-int 0x15 ;waits for (cx*16^4)+dx microseconds
-pop dx
-pop cx
-pop ax
+setfreq: ;frequency becomes 1.193182MHz/ax, with 0=65536
+pushf
+cli
+out 0x40, al
+mov al, ah
+out 0x40, al
+sti
+popf
 ret
+
+overflow:
+dw 0x0000
+
+time:
+dw 0x0000, 0x0000
+
+shift:
+db 0x00

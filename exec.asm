@@ -51,7 +51,7 @@ ret
 dw .os, .piano, .wallpaper, .game, .paint, .pong, .array 
 
 .os:
-dw piano, .off, wallpaper, gamestart, keys, keys
+dw piano, .off, wallpaper, gamestart, keys, keys, pause.toggle
 
 .piano:
 dw .quit
@@ -95,15 +95,15 @@ pop ax
 jmp os
 
 .help:
-dw .helpOS, .helpPiano,program,.helpGame, .helpPaint
+dw .helpOS, .helpPiano,.helpPaint,.helpGame, .helpPaint
 .helpOS:
-db 0x0D, 'enter 1 for piano', 0x0D, 'enter 2 for off, and saves the game', 0x0D, 'enter 3 for wallpaper', 0x0D, 'enter 4 for game', 0x0D, 'enter 5 for paint', 0x0D, 'enter 6 for pong', 0x0D,'enter h for help with any program', 0
+db 0x0D, 'enter 1 for piano', 0x0D, 'enter 2 for off, and saves the game', 0x0D, 'enter 3 for wallpaper', 0x0D, 'enter 4 for game', 0x0D, 'enter 5 for paint', 0x0D, 'enter 6 for pong', 0x0D, 'enter 7 to toggle pause durations', 0x0D, 'enter h for help with any program', 0
 .helpPiano:
 db 0x0D, 'Press a key and produce a tone', 0x0D, 'Enter 1 to quit', 0
 .helpGame:
 db 0x0D, 'enter 1 for new game, 2 to save your progress and the computer state. enter 3 to exit', 0
 .helpPaint:
-db 0x0D, 'enter 1 to exit, 2 for Dank Memes', 0
+db 0x0D, 'enter 1 to exit', 0
 command:
 db '0', 0
 program:

@@ -7,12 +7,8 @@ call cls
 mov [command], byte '1'
 mov [program], byte '5' ;set the program
 .loop:
-call smallPause
-call smallPause ;pause so the framerate isn't infinite
-call smallPause
-call smallPause
-call smallPause
-call smallPause
+mov dx, 0xC000
+call pause
 
 ;key presses, move player
 mov al, [kbdbuf + 0x48] ;get up key
@@ -26,11 +22,9 @@ jnz     .down
 
 
 ;draw ball
-xor bx, bx ;clear ax, bx
-xor ax, ax
 mov bl, [.bally+1] ;get ball y higher byte
 mov al, byte 0xA0 ;multiply by screen width
-call mult
+mul bl
 mov bx, [ans]
 mov ax, [.cpuy] ;get cpu position and compare to ball height
 add ax, 0x140

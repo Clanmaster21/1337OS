@@ -1,5 +1,5 @@
 save:
-pusha
+push bx
 call cls
 mov bx, .saveS
 call printS
@@ -9,7 +9,8 @@ call disko
 jc .fail
 mov bx, .success
 call printS
-popa
+pop bx
+call ent2con
 jmp gamestart
 
 .saveS:
@@ -23,5 +24,5 @@ db 'Save failed, quitting. You may retry saving from the menu.', 0x00
 mov bx, .failure
 call printS
 call ent2con
-popa
+pop bx
 jmp gamestart

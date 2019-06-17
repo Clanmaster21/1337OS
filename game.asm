@@ -9,7 +9,8 @@ call printS ;welcome message
 call enter
 
 .loop:
-call smallPause
+mov dx, 0x2000
+call pause2
 jmp Uinput ;inputs for start/load
 jmp .loop
 
@@ -31,7 +32,7 @@ mov bx, name ;move bx to name
 push bx ;push bx as it's needed multiple times
 
 .do:
-call pause ;makes sure the inputs aren't horrifically fast
+call pause2 ;makes sure the inputs aren't horrifically fast
 call key ;char now contains last keypress
 mov bx, char ;point bx to char
 cmp [char], byte 0x00 ;check if there is a character
@@ -84,7 +85,7 @@ je .left ;if left
 cmp [char], byte 0x0D
 je firstroll
 mov [char+2], byte 0x00 ;clear input
-call pause
+call pause2
 jmp .loop ;loop
 
 .up: ;moves cursor up a row
@@ -224,6 +225,7 @@ db 'Most people respect you enough to use your real name', 0x00
 ent2con:
 push bx
 push cx
+push dx
 mov [char], byte 0x00
 call enter
 mov cx, [cursor]
@@ -241,7 +243,8 @@ call key
 cmp [char+2], byte 0x1C
 mov [char+2], byte 0x00
 je .cont
-call smallPause
+mov dx, 0x2000
+call pause2
 sub [count],  byte 0x01
 cmp [count], byte 0x00
 jne .input1
@@ -258,7 +261,8 @@ call key
 cmp [char+2], byte 0x1C
 mov [char+2], byte 0x00
 je .cont
-call smallPause
+mov dx, 0x2000
+call pause2
 sub [count],  byte 0x01
 cmp [count], byte 0x00
 jne .input2
@@ -267,6 +271,7 @@ jmp .loop
 pop cx
 mov bx, pressenterf
 call printS
+pop dx
 pop cx
 pop bx
 ret

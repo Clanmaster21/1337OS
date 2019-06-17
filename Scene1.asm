@@ -83,6 +83,8 @@ call ent2con
 call enter
 push ax
 push bx
+push dx
+mov dx, 0x2000
 jmp ChooseOS ;choose OS
 .cont:
 call enter
@@ -216,13 +218,14 @@ mov [bx+1], byte 0x07
 
 mov bx, OSfamily1
 call printS
-call smallPause
+call pause
 pop word [cursor]
 
 cmp [char+2], byte 0x1C
 mov [char+2], byte 0x00
 jne ChooseOS
 pop bx ;since we pushed cursor earlier
+pop dx
 pop bx
 pop ax
 jmp Scene1.cont

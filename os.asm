@@ -13,10 +13,12 @@ mov [char], byte 0x00
 mov [program], byte '0'
 mov [command], byte 0x00
 mov [colour], byte 0x09
+mov ax, 0
+call setfreq
 mov bx, image
 call printS
-call longPause
-call longPause
+mov cx, 0x20
+call pause
 os:
 mov [colour], byte 0x09
 mov [program], byte '0'
@@ -39,11 +41,10 @@ call enter
 loop:
 call random ;sets randint
 call pauseran
+xor bh, bh
 mov ax, 0x0478 ;move low note
-mov bx, [randint] ;multiply by randint
-sub bx, 0x30 ;convert to decimal
-call mult ;ans becomes answer
-mov ax, [ans] ;ax becomes answer
+mov bl, [randint] ;multiply by randint
+mul bx
 mov [note], ax ;note becomes answer, random note
 
 call beep
@@ -57,7 +58,7 @@ String:
 db 'Welcome to 1337 OS', 0
 
 returnS:
-db 'Welcome to 1337 OS, ',0xFE, 0
+db 'Welcome back to 1337 OS, ',0xFE, 0
 
 cursor:
 dw 0x0
