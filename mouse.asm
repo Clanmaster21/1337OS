@@ -1,5 +1,7 @@
 mouse: ;setup mouse driver
-pusha
+push ax
+push bx
+push cx
 xor ax, ax
 mov al,0xa8  
 out 0x64,al ;activate auxilliary
@@ -16,7 +18,9 @@ in al,0x60 ;should be 0xAA
 in al,0x60 ;should be device ID (assuming 0x00 for now)
 mov bl, 0xF4
 call .send
-popa
+pop cx
+pop bx
+pop ax
 ret
 ;No real need to be able to disable the driver
 

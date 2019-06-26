@@ -38,14 +38,12 @@ mov bx, [bx] ;resolve address
 mov [return+2], bx ;save address for jumping
 pop bx  ;restore registers
 pop ax
-push word [return+2] ;push address for jumping
-ret ;jump
+jmp word [return+2] 
 
 .end: ;restore addresses, jump to [return]
 pop bx
 pop ax 
-push word [return]
-ret
+jmp word [return]
 
 .programs:
 dw .os, .piano, .wallpaper, .game, .paint, .pong, .array 

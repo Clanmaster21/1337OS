@@ -84,48 +84,6 @@ pop cx
 pop ax
 ret
 
-debug: ;prints the general purpose registers
-push dx
-push cx
-push bx
-mov dx, ax
-mov di, .debugS+0x08
-mov si, .debugS+0x04
-mov cl, 0x04
-mov bx, array
-
-.loop:
-mov al, dl
-and al, 0x0F
-xlat
-mov [di], al
-dec di
-ror dx, cl
-cmp si, di
-jnz .loop
-
-pop dx
-add si, 0x0A
-add di, 0x0A+0x04
-dec byte [.count]
-jnz .loop
-
-mov bx, .debugS
-call printS
-jmp $
-
-.count:
-db 0x04
-
-.debugS:
-db 'ax:0x', 0x00, 0x00, 0x00, 0x00, 0x0D
-db 'bx:0x', 0x00, 0x00, 0x00, 0x00, 0x0D
-db 'cx:0x', 0x00, 0x00, 0x00, 0x00, 0x0D
-db 'dx:0x', 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00
-
-array:
-db '0123456789ABCDEF'
-
 gettime:
 push ax
 push cx

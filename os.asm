@@ -53,6 +53,9 @@ jmp Uinput
 jmp loop
 
 %include "diskIO.asm" ;read/write to disk
+%include "startup.asm" ;opening image
+%include "input.asm" ;check for all keys, or singular key.
+
 
 String: 
 db 'Welcome to 1337 OS', 0
@@ -70,21 +73,20 @@ test:
 ret
 
 %include "print.asm" ;contains printing, and other screen based stuff
-%include "input.asm" ;check for all keys, or singular key. returns in zf
 %include "maths.asm" ;more complex mathematical functions that take a few lines
 %include "exec.asm" ;takes the input and executes it
 %include "wallpaper.asm" ;pretty colours
 %include "sound.asm" ;it can beep
-%include "startup.asm" ;opening image
 %include "Scene1.asm" ;scene 1 of the game
-%include "Scene2.asm" ;scene 2 of the game
 %include "wait.asm" ;waits a moment, must be manual edited at the current time
 %include "Save.asm" ;saves the game
-%include "load.asm" ;loads the game
-%include "fight.asm" ;the basis of all Fight scenes
 %include "paint.asm" ;Paint, an attempt at mouse drivers
 %include "keys.asm" ;keyboard driver
 %include "pong.asm" ;pong, back for round 2
 %include "mouse.asm" ;mouse driver
 %include "game.asm" ;The main attraction, an RPG
+%include "debug.asm" ;contains debugging tools
+;%include "load.asm" ;loads the game
+;%include "Scene2.asm" ;scene 2 of the game
+;%include "fight.asm" ;the basis of all Fight scenes
 times 10240-($-$$) db 0

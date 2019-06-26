@@ -1,6 +1,8 @@
 beep:
 push ax
 push bx
+push cx
+mov cx, 0x0002
 mov     al, 182         ; Prepare the speaker for the
 out     43h, al         ;  note.
 mov     ax, [note]        ; Frequency number (in decimal)
@@ -18,6 +20,7 @@ in      al, 61h         ; Turn off note (get value from
                         ;  port 61h).
 and     al, 11111100b   ; Reset bits 1 and 0.
 out     61h, al         ; Send new value.
+pop cx
 pop bx
 pop ax
 ret
@@ -39,8 +42,7 @@ cmp [command], byte ' '
 je Uinput
 mov ax, 0x0028 ;move a tone to ax
 mov bx, [command] 
-call mult ;multiply them to get a tone
-mov ax, [ans]
+mul bx
 mov [note], ax
 call beep ;play it
 jmp Uinput
@@ -53,7 +55,7 @@ push cx
 mov bx, 0x55
 mov ax, 0x00
 .loop:
-call mult
+mul bl
 mov cx, [ans]
 mov [note], cx
 call beep

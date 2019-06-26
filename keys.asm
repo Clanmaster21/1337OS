@@ -40,8 +40,9 @@ in      al, 0x60
 xor     bh, bh
 mov     bl, al
 and     bl, 0x7F            ; bx = scan code
-shr     al, 7               ; al = 0 if pressed, 1 if released
-xor     al, 1               ; al = 1 if pressed, 0 if released
+rcl     al, 0x01             
+salc            ; al = 1 if pressed, 0 if released
+inc ax
 mov     [cs:bx+kbdbuf], al
 ; send EOI to XT keyboard
 in      al, 0x61

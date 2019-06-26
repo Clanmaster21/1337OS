@@ -1,5 +1,5 @@
 paint:
-pusha
+push es
 call cls ;clear the screen
 mov bx, paintS
 call printS ;print the welcome message
@@ -61,8 +61,8 @@ xor ax, ax
 mov ax, 0x03
 mov bx, 0x00
 int 10h
-    popa
-    ret
+pop es
+ret
 mov bl, 0xF5
 call mouse.send
 jmp .loop
@@ -76,7 +76,10 @@ mov [.brush], byte 0x00
 jmp .loop
 
 .mouse:
-pusha
+push ax
+push bx
+push cx
+
 call mouse.waitr
 call mouse.mpause
 xor bx, bx
@@ -126,7 +129,9 @@ in al, 0x60
 in al, 0x60
 in al, 0x60
 in al, 0x60
-popa
+pop cx
+pop bx
+pop ax
 jmp .mousedone
 
 .sub1:
